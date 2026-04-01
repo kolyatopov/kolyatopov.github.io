@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>audiox</title>
+    <meta
+      name="description"
+      content="audiox — жанры, плейлисты Spotify и личный каталог альбомов."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <!-- До первого показа intro на главной: класс intro-pending скрывает лейаут от «мигания» (см. styles.css и main.js initLogoIntro). -->
+    <script>
+      (function () {
+        try {
+          var p = location.pathname || "";
+          try {
+            p = decodeURIComponent(p);
+          } catch (e) {}
+          var home =
+            p === "/" ||
+            /\/index\.html$/i.test(p) ||
+            p.endsWith("/audiox/") ||
+            /audiox\/index\.html$/i.test(p);
+          if (!home) return;
+          if (sessionStorage.getItem("logoIntroPlayed") === "1") return;
+          if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+          document.documentElement.classList.add("intro-pending");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Перейти к содержанию</a>
+
+    <header class="top">
+      <div class="container top__inner">
+        <div class="brand" aria-label="Название проекта">
+          <div class="brand__mark" aria-hidden="true"></div>
+          <div class="brand__text">
+            <div class="brand__title">audio<span class="brand__accent">x</span></div>
+            <div class="brand__subtitle">музыка и коллекция</div>
+          </div>
+        </div>
+
+        <nav class="bars" aria-label="Верхнее меню">
+          <a class="bar is-active" href="./index.html">Главная</a>
+          <a class="bar" href="./form.html">Новый альбом</a>
+          <a class="bar" href="./list.html">Список</a>
+          <a class="bar" href="./register.html">Регистрация</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="content" class="container">
+      <section class="hero" id="home">
+        <div class="hero__card">
+          <h1 class="hero__title">Открывай жанры и собирай коллекцию</h1>
+          <p class="hero__lead">Жанровые подборки, схемы сцен и твой трекер альбомов в одном месте.</p>
+
+          <div class="tabs" aria-label="Вкладки контента">
+            <div class="tabs__list" role="tablist" aria-label="Разделы">
+              <button
+                class="tab is-active"
+                role="tab"
+                id="tab-genres"
+                aria-controls="panel-genres"
+                aria-selected="true"
+                tabindex="0"
+                type="button"
+              >
+                Жанры
+              </button>
+              <button
+                class="tab"
+                role="tab"
+                id="tab-artists"
+                aria-controls="panel-artists"
+                aria-selected="false"
+                tabindex="-1"
+                type="button"
+              >
+                Исполнители
+              </button>
+              <button
+                class="tab"
+                role="tab"
+                id="tab-playlists"
+                aria-controls="panel-playlists"
+                aria-selected="false"
+                tabindex="-1"
+                type="button"
+              >
+                Подборки
+              </button>
+            </div>
+
+            <div class="tabs__panels">
+              <section
+                class="panel is-active"
+                role="tabpanel"
+                id="panel-genres"
+                aria-labelledby="tab-genres"
+                tabindex="0"
+              >
+                <h2 class="panel__title">Жанры</h2>
+                <div class="grid">
+                  <article
+                    class="tile tile--genre-selectable is-genre-selected"
+                    data-spotify-playlist="37i9dQZF1DWXRqgorJj26U"
+                    data-spotify-label="Rock Classics"
+                    role="button"
+                    tabindex="0"
+                    aria-pressed="true"
+                  >
+                    <div class="cover" data-album="Arctic Monkeys — AM" aria-hidden="true">
+                      <img
+                        src="https://upload.wikimedia.org/wikipedia/en/0/04/Arctic_Monkeys_-_AM.png"
+                        alt="Arctic Monkeys — AM"
+                        loading="lazy"
+                        referrerpolicy="no-referrer"
+                      />
+                    </div>
+                    <div class="tile__kicker">Rock</div>
+                    <div class="tile__title">Альтернатива, инди, пост‑панк</div>
+                    <p class="tile__text">
+                      От британского инди до японского пост‑рока — жанр, где важны
+                      гитары, энергия и живой звук.
+                    </p>
+                  </article>
+                  <article
+                    class="tile tile--genre-selectable"
+                    data-spotify-playlist="37i9dQZF1DX6GwdWRQMQpq"
+                    data-spotify-label="Electronic Rising"
+                    role="button"
+                    tabindex="0"
+                    aria-pressed="false"
+                  >
+                    <div class="cover" data-album="Daft Punk — Discovery" aria-hidden="true">
+                      <img
+                        src="https://upload.wikimedia.org/wikipedia/en/a/ae/Daft_Punk_-_Discovery.jpg"
+                        alt="Daft Punk — Discovery"
+                        loading="lazy"
+                        referrerpolicy="no-referrer"
+                      />
+                    </div>
+                    <div class="tile__kicker">Electronic</div>
+                    <div class="tile__title">House, techno, ambient</div>
+                    <p class="tile__text">
+                      Европейская клубная культура, даунтемпо и атмосферные
+                      электронные направления.
+                    </p>
+                  </article>
+                  <article
+                    class="tile tile--genre-selectable"
+                    data-spotify-playlist="37i9dQZF1DX0XUsuxWHRQd"
+                    data-spotify-label="RapCaviar"
+                    role="button"
+                    tabindex="0"
+                    aria-pressed="false"
+                  >
+                    <div class="cover" data-album="Kendrick Lamar — DAMN." aria-hidden="true">
+                      <img
+                        src="https://upload.wikimedia.org/wikipedia/en/5/51/Kendrick_Lamar_-_Damn.png"
+                        alt="Kendrick Lamar — DAMN."
+                        loading="lazy"
+                        referrerpolicy="no-referrer"
+                      />
+                    </div>
+                    <div class="tile__kicker">Hip‑Hop</div>
+                    <div class="tile__title">Сцены разных языков</div>
+                    <p class="tile__text">
+                      Французский, корейский, испанский рэп — хороший способ
+                      услышать культуру и сленг изнутри.
+                    </p>
+                  </article>
+                  <article
+                    class="tile tile--genre-selectable"
+                    data-spotify-playlist="37i9dQZF1DX0AMPIOJXu9I"
+                    data-spotify-label="Worldwide"
+                    role="button"
+                    tabindex="0"
+                    aria-pressed="false"
+                  >
+                    <div class="cover" data-album="Buena Vista Social Club — Buena Vista Social Club" aria-hidden="true">
+                      <img
+                        src="https://upload.wikimedia.org/wikipedia/en/1/1e/BuenaVistaSocialClub.jpg"
+                        alt="Buena Vista Social Club — Buena Vista Social Club"
+                        loading="lazy"
+                        referrerpolicy="no-referrer"
+                      />
+                    </div>
+                    <div class="tile__kicker">World</div>
+                    <div class="tile__title">Фольклор и современная этника</div>
+                    <p class="tile__text">
+                      Афробит, латино, балканские ритмы — традиции в современном
+                      звучании.
+                    </p>
+                  </article>
+                </div>
+
+                <div class="spotify-embed spotify-embed--genre" id="genre-spotify-block">
+                  <p class="spotify-embed__title" id="genre-spotify-heading">Spotify: Rock Classics</p>
+                  <iframe
+                    title="Spotify — плейлист по жанру"
+                    class="spotify-embed__frame"
+                    id="genre-spotify-iframe"
+                    src="https://open.spotify.com/embed/playlist/37i9dQZF1DWXRqgorJj26U?utm_source=generator&amp;theme=0"
+                    width="100%"
+                    height="352"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                  ></iframe>
+                </div>
+              </section>
+
+              <section
+                class="panel"
+                role="tabpanel"
+                id="panel-artists"
+                aria-labelledby="tab-artists"
+                tabindex="0"
+              >
+                <h2 class="panel__title">Сцены по регионам</h2>
+
+                <div class="list">
+                  <div class="list__row">
+                    <div class="cover--sm" aria-hidden="true"></div>
+                    <div class="badge">UK</div>
+                    <div class="list__body">
+                      <div class="list__title">Британская сцена</div>
+                      <div class="list__desc">
+                        Инди‑рок, drum&bass, trip‑hop — сильная традиция живых
+                        выступлений и продакшна.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="list__row">
+                    <div class="cover--sm" aria-hidden="true"></div>
+                    <div class="badge">KR</div>
+                    <div class="list__body">
+                      <div class="list__title">Корея</div>
+                      <div class="list__desc">
+                        K‑pop и альтернативные сцены: от айдол‑проектов до
+                        андеграундных коллективов.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="list__row">
+                    <div class="cover--sm" aria-hidden="true"></div>
+                    <div class="badge">BR</div>
+                    <div class="list__body">
+                      <div class="list__title">Бразилия</div>
+                      <div class="list__desc">
+                        Самба/босса‑нова и современная поп‑сцена — отличный пример
+                        синтеза традиций.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section
+                class="panel"
+                role="tabpanel"
+                id="panel-playlists"
+                aria-labelledby="tab-playlists"
+                tabindex="0"
+              >
+                <h2 class="panel__title">Подборки</h2>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div class="muted">© audiox</div>
+      </div>
+    </footer>
+
+    <script src="./main.js" defer></script>
+  </body>
+</html>

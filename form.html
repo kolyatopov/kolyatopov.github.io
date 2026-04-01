@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Новый альбом — audiox</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="form">
+    <header class="top">
+      <div class="container top__inner">
+        <div class="brand" aria-label="Логотип сайта">
+          <div class="brand__mark" aria-hidden="true"></div>
+          <div class="brand__text">
+            <div class="brand__title">audio<span class="brand__accent">x</span></div>
+            <div class="brand__subtitle">музыка и коллекция</div>
+          </div>
+        </div>
+        <nav class="bars" aria-label="Навигация">
+          <a class="bar" href="./index.html">Главная</a>
+          <a class="bar is-active" href="./form.html">Новый альбом</a>
+          <a class="bar" href="./list.html">Список</a>
+          <a class="bar" href="./register.html">Регистрация</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="content" class="container">
+      <section class="section">
+        <h1 class="panel__title">Новый альбом</h1>
+
+        <form class="music-form" id="album-form">
+          <label class="field">
+            <span class="field__label">Название альбома</span>
+            <input class="field__input" name="title" type="text" placeholder="Например: Discovery" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Исполнитель</span>
+            <input class="field__input" name="artist" type="text" placeholder="Например: Daft Punk" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Год</span>
+            <input class="field__input" name="year" type="number" min="1900" max="2100" placeholder="2001" required />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Страна</span>
+            <select class="field__input" name="country" required>
+              <option>Франция</option>
+              <option>США</option>
+              <option>Великобритания</option>
+              <option>Япония</option>
+              <option>Другое</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Жанр</span>
+            <select class="field__input" name="genre" required>
+              <option>Electronic</option>
+              <option>Rock</option>
+              <option>Hip-Hop</option>
+              <option>World</option>
+              <option>Pop</option>
+              <option>Jazz</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Статус</span>
+            <select class="field__input" name="status" required>
+              <option value="planned">В планах</option>
+              <option value="listening">Слушаю</option>
+              <option value="completed">Прослушан</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span class="field__label">Оценка (1-10)</span>
+            <input class="field__input" name="rating" type="number" min="1" max="10" step="0.1" placeholder="9.3" required />
+          </label>
+
+          <label class="field field--full">
+            <span class="field__label">Обложка альбома (файл)</span>
+            <input class="field__input" name="coverFile" type="file" accept="image/*" />
+          </label>
+
+          <label class="field field--full">
+            <span class="field__label">Рецензия</span>
+            <textarea class="field__input field__input--textarea" name="review" placeholder="Что понравилось, любимые треки, общее впечатление" required></textarea>
+          </label>
+
+          <div class="actions">
+            <button class="btn btn--primary" type="submit">Сохранить</button>
+            <button class="btn" type="reset">Очистить</button>
+          </div>
+        </form>
+        <p class="panel__text" id="form-message" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div class="muted">© audiox</div>
+      </div>
+    </footer>
+    <script src="./main.js" defer></script>
+  </body>
+</html>

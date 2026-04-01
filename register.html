@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Регистрация — audiox</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="register">
+    <header class="top">
+      <div class="container top__inner">
+        <div class="brand" aria-label="Логотип сайта">
+          <div class="brand__mark" aria-hidden="true"></div>
+          <div class="brand__text">
+            <div class="brand__title">audio<span class="brand__accent">x</span></div>
+            <div class="brand__subtitle">музыка и коллекция</div>
+          </div>
+        </div>
+        <nav class="bars" aria-label="Навигация">
+          <a class="bar" href="./index.html">Главная</a>
+          <a class="bar" href="./form.html">Новый альбом</a>
+          <a class="bar" href="./list.html">Список</a>
+          <a class="bar is-active" href="./register.html">Регистрация</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="content" class="container">
+      <section class="section">
+        <h1 class="panel__title">Регистрация</h1>
+
+        <form class="music-form" id="register-form" novalidate autocomplete="on">
+          <label class="field">
+            <span class="field__label">Имя пользователя</span>
+            <input
+              class="field__input"
+              id="reg-username"
+              name="username"
+              type="text"
+              autocomplete="username"
+              minlength="3"
+              maxlength="32"
+              required
+              placeholder="Например: music_fan"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Email</span>
+            <input
+              class="field__input"
+              id="reg-email"
+              name="email"
+              type="text"
+              autocomplete="email"
+              required
+              placeholder="example@mail.com"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Пароль</span>
+            <input
+              class="field__input"
+              id="reg-password"
+              name="password"
+              type="password"
+              autocomplete="new-password"
+              minlength="8"
+              maxlength="128"
+              required
+              placeholder="Минимум 8 символов"
+            />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Подтверждение пароля</span>
+            <input
+              class="field__input"
+              id="reg-password-confirm"
+              name="passwordConfirm"
+              type="password"
+              autocomplete="new-password"
+              minlength="8"
+              maxlength="128"
+              required
+              placeholder="Повтори пароль"
+            />
+          </label>
+
+          <div class="actions">
+            <button class="btn btn--primary" type="submit">Зарегистрироваться</button>
+            <button class="btn" type="reset">Очистить</button>
+          </div>
+        </form>
+        <p class="register-message" id="register-message" aria-live="polite"></p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div class="muted">© audiox</div>
+      </div>
+    </footer>
+    <script src="./main.js" defer></script>
+  </body>
+</html>

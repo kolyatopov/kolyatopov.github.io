@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Детали — audiox</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body data-page="detail">
+    <header class="top">
+      <div class="container top__inner">
+        <div class="brand" aria-label="Логотип сайта">
+          <div class="brand__mark" aria-hidden="true"></div>
+          <div class="brand__text">
+            <div class="brand__title">audio<span class="brand__accent">x</span></div>
+            <div class="brand__subtitle">музыка и коллекция</div>
+          </div>
+        </div>
+        <nav class="bars" aria-label="Навигация">
+          <a class="bar" href="./index.html">Главная</a>
+          <a class="bar" href="./form.html">Новый альбом</a>
+          <a class="bar is-active" href="./list.html">Список</a>
+          <a class="bar" href="./register.html">Регистрация</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="content" class="container">
+      <section class="section detail">
+        <div class="detail__cover cover" data-album="" id="detail-cover">
+          <img
+            src=""
+            alt="Обложка альбома"
+            loading="lazy"
+            referrerpolicy="no-referrer"
+            id="detail-cover-img"
+          />
+        </div>
+        <div class="detail__body">
+          <h1 class="panel__title" id="detail-title">Нет записи</h1>
+          <p class="panel__text" id="detail-meta"></p>
+
+          <div class="chips" id="detail-chips">
+            <span class="badge" id="detail-genre">—</span>
+            <span class="badge" id="detail-year">—</span>
+            <span class="badge" id="detail-status">—</span>
+            <span class="badge" id="detail-rating">—</span>
+          </div>
+
+          <p class="tile__text" id="detail-review"></p>
+          <a class="btn btn--primary" href="./list.html">К коллекции</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div class="muted">© audiox</div>
+      </div>
+    </footer>
+    <script src="./main.js" defer></script>
+  </body>
+</html>
