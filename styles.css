@@ -16,6 +16,134 @@
   --radius-sm: 8px;                  /* скругление кнопок, инпутов, мелких элементов */
   --logo-url: url("./logo.png");     /* картинка в квадрате бренда и на интро */
   --logo-crop-scale: 124%;           /* zoom логотипа внутри квадрата */
+  /* Живые кнопки: градиент и свечение */
+  --btn-grad: linear-gradient(135deg, #ff5e62 0%, #e11d2e 42%, #b9136f 100%);
+  --btn-grad-hover: linear-gradient(135deg, #ff7c84 0%, #f02438 40%, #cf2080 100%);
+  --btn-grad-active: linear-gradient(135deg, #d94850 0%, #b81828 45%, #95105a 100%);
+  --btn-glow: 0 4px 24px rgba(225, 29, 46, 0.45);
+  --btn-glow-hover: 0 6px 32px rgba(225, 29, 46, 0.6), 0 0 40px rgba(201, 30, 120, 0.25);
+  /* Bootstrap 5 — цвета в тон теме */
+  --bs-primary: #e11d2e;
+  --bs-primary-rgb: 225, 29, 46;
+  --bs-body-bg: var(--bg);
+  --bs-body-color: var(--text);
+  --bs-secondary-color: var(--muted);
+  --bs-border-color: var(--stroke);
+  --bs-dark: #121212;
+  --bs-dark-rgb: 18, 18, 18;
+}
+
+/*
+  Кнопки: не плоский залив — градиент коралл → красный → маджента, свечение и лёгкий подъём.
+  Вторичная — матовое стекло, на hover холодное неоновое кольцо (контраст к тёплому primary).
+*/
+.btn-primary{
+  --bs-btn-color: #fff;
+  --bs-btn-bg: transparent;
+  --bs-btn-border-color: rgba(255, 130, 150, 0.45);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: transparent;
+  --bs-btn-hover-border-color: rgba(255, 180, 200, 0.55);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: transparent;
+  --bs-btn-active-border-color: rgba(255, 100, 130, 0.5);
+  --bs-btn-disabled-color: rgba(255, 255, 255, 0.55);
+  --bs-btn-disabled-bg: rgba(80, 20, 40, 0.45);
+  --bs-btn-disabled-border-color: rgba(255, 255, 255, 0.12);
+  background-image: var(--btn-grad);
+  background-color: var(--accent);
+  border-width: 1px;
+  font-weight: 620;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  box-shadow: var(--btn-glow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.22s ease,
+    filter 0.2s ease,
+    border-color 0.2s ease;
+}
+.btn-primary:hover{
+  background-image: var(--btn-grad-hover);
+  border-color: rgba(255, 200, 210, 0.55);
+  box-shadow: var(--btn-glow-hover), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transform: translateY(-2px);
+  filter: brightness(1.04) saturate(1.05);
+}
+.btn-primary:active,
+.btn-primary.active{
+  background-image: var(--btn-grad-active);
+  border-color: rgba(225, 29, 46, 0.6);
+  box-shadow: 0 2px 12px rgba(225, 29, 46, 0.35), inset 0 2px 6px rgba(0, 0, 0, 0.2);
+  transform: translateY(0);
+  filter: brightness(0.97);
+}
+.btn-primary:focus{
+  box-shadow: var(--btn-glow), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+.btn-primary:focus-visible{
+  box-shadow: var(--btn-glow-hover), 0 0 0 3px rgba(225, 29, 46, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+.btn-primary:disabled,
+.btn-primary.disabled{
+  background-image: none;
+  transform: none;
+  filter: none;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.btn-outline-secondary{
+  --bs-btn-color: rgba(255, 255, 255, 0.9);
+  --bs-btn-border-color: rgba(255, 255, 255, 0.22);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: rgba(255, 255, 255, 0.06);
+  --bs-btn-hover-border-color: rgba(160, 210, 255, 0.45);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: rgba(255, 255, 255, 0.1);
+  --bs-btn-active-border-color: rgba(140, 200, 255, 0.4);
+  --bs-btn-disabled-color: rgba(255, 255, 255, 0.4);
+  --bs-btn-disabled-border-color: rgba(255, 255, 255, 0.08);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  font-weight: 580;
+  letter-spacing: 0.02em;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition:
+    transform 0.18s ease,
+    border-color 0.2s ease,
+    box-shadow 0.22s ease,
+    background 0.2s ease;
+}
+.btn-outline-secondary:hover{
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.12) 0%, rgba(120, 180, 255, 0.06) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 0 22px rgba(100, 170, 255, 0.12);
+  transform: translateY(-1px);
+}
+.btn-outline-secondary:active,
+.btn-outline-secondary.active{
+  transform: translateY(0);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.btn-outline-secondary:focus{
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.btn-outline-secondary:focus-visible{
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 0 0 3px rgba(130, 190, 255, 0.22);
+}
+
+@media (prefers-reduced-motion: reduce){
+  .btn-primary,
+  .btn-outline-secondary{
+    transition: none;
+  }
+  .btn-primary:hover,
+  .btn-outline-secondary:hover{
+    transform: none;
+  }
 }
 
 *{ box-sizing: border-box; }
@@ -26,7 +154,7 @@ html.intro-pending body{
   background: #000;
 }
 html.intro-pending body > .skip-link,
-html.intro-pending body > header.top,
+html.intro-pending body > header.audiox-top,
 html.intro-pending body > main,
 html.intro-pending body > footer.footer{
   visibility: hidden;
@@ -37,6 +165,7 @@ body{
   display: flex;
   flex-direction: column;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+  /* Bootstrap data-bs-theme=dark задаёт часть цветов; фон остаётся от --bs-body-bg */
   line-height: 1.35;
   color: var(--text);
   background: var(--bg);
@@ -61,22 +190,34 @@ a{ color: inherit; }
 }
 .skip-link:focus{ left: 12px; z-index: 1000; }
 
-/* Шапка: липкая плашка, полупрозрачный чёрный (отдельно от --bg для эффекта стекла). */
-.top{
-  position: sticky;
-  top: 0;
-  z-index: 50;
-  background: rgba(0,0,0,.80);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--stroke);
+/* Обёртка шапки (Bootstrap navbar внутри). */
+.audiox-top{
   transition: opacity .9s ease, transform .9s cubic-bezier(.2,.8,.2,1);
 }
-.top__inner{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
+.audiox-navbar{
+  z-index: 1030;
+  background: rgba(0,0,0,.85) !important;
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--stroke) !important;
+}
+.audiox-navbar .navbar-brand{
+  margin-right: 0;
+}
+.audiox-navbar .nav-link{
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.85rem !important;
+  color: rgba(255,255,255,.88) !important;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+}
+.audiox-navbar .nav-link:hover{
+  background: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.18);
+}
+.audiox-navbar .nav-link.active{
+  border-color: rgba(225,29,46,.55);
+  background: rgba(225,29,46,.14) !important;
+  color: #fff !important;
 }
 
 .brand{
@@ -152,7 +293,7 @@ a{ color: inherit; }
     transform: scale(.98);
   }
 }
-.logo-intro-active .top,
+.logo-intro-active header.audiox-top,
 .logo-intro-active main,
 .logo-intro-active .footer{
   opacity: 0;
@@ -180,33 +321,6 @@ main,
 .brand__subtitle{
   font-size: 13px;
   color: var(--muted);
-}
-
-/* Навигация: неактивные bar — полупрозрачный белый фон; активная — оттенок акцента (см. rgba 225,29,46). */
-.bars{
-  display:flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-.bar{
-  text-decoration: none;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--stroke);
-  background: rgba(255,255,255,.06);
-  transition: transform .12s ease, background .12s ease, border-color .12s ease;
-  font-size: 14px;
-  white-space: nowrap;
-}
-.bar:hover{
-  transform: translateY(-1px);
-  border-color: rgba(255,255,255,.22);
-  background: rgba(255,255,255,.10);
-}
-.bar.is-active{
-  border-color: rgba(225,29,46,.55);
-  background: rgba(225,29,46,.14);
 }
 
 /* Блок под шапкой на главной: крупный заголовок и карточка. */
@@ -242,29 +356,31 @@ main,
   gap: 10px;
   flex-wrap: wrap;
 }
-.tab{
+/* Вкладки главной: внешний вид как nav-pills + совместимость с Bootstrap .nav-link */
+.tab.nav-link{
   appearance: none;
-  border: 1px solid var(--stroke);
-  background: rgba(255,255,255,.06);
-  color: var(--text);
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
   cursor: pointer;
-  transition: transform .12s ease, background .12s ease, border-color .12s ease;
+  border: 1px solid var(--stroke) !important;
+  background: rgba(255,255,255,.06) !important;
+  color: var(--text) !important;
+  padding: 10px 14px !important;
+  border-radius: var(--radius-sm) !important;
   font-size: 14px;
+  transition: transform .12s ease, background .12s ease, border-color .12s ease;
 }
-.tab:hover{
+.tab.nav-link:hover{
   transform: translateY(-1px);
-  border-color: rgba(255,255,255,.22);
-  background: rgba(255,255,255,.10);
+  border-color: rgba(255,255,255,.22) !important;
+  background: rgba(255,255,255,.10) !important;
 }
-.tab:focus-visible{
+.tab.nav-link:focus-visible{
   outline: 2px solid rgba(225,29,46,.85);
   outline-offset: 2px;
 }
-.tab.is-active{
-  border-color: rgba(225,29,46,.55);
-  background: rgba(225,29,46,.14);
+.tab.nav-link.active,
+.tab.nav-link.is-active{
+  border-color: rgba(225,29,46,.55) !important;
+  background: rgba(225,29,46,.14) !important;
 }
 
 .tabs__panels{ margin-top: 14px; }
@@ -287,7 +403,8 @@ main,
 }
 
 /* Сетка жанровых плиток (2 колонки, на узком экране — 1). */
-.grid{
+/* Сетка жанров: при использовании Bootstrap row отключаем native grid */
+.grid:not(.row){
   display:grid;
   grid-template-columns: repeat(2, minmax(0,1fr));
   gap: 12px;
@@ -457,7 +574,7 @@ main,
   object-fit: cover;
   display:block;
 }
-.badge{
+.audiox-badge{
   flex: 0 0 auto;
   font-weight: 750;
   letter-spacing: .08em;
@@ -488,12 +605,15 @@ main,
 .callout__text{ color: var(--muted); margin-top: 6px; }
 
 /* Обёртка встроенного Spotify: тёмный фон под iframe (#121212 близок к плееру). */
-.spotify-embed{
+.spotify-embed:not(.card){
   margin: 16px 0;
   padding: 14px;
   border-radius: var(--radius);
   border: 1px solid var(--stroke);
   background: rgba(0,0,0,.35);
+}
+.spotify-embed.card{
+  background: rgba(0,0,0,.45);
 }
 .spotify-embed__title{
   margin: 0 0 6px;
@@ -524,8 +644,8 @@ main,
 .section h2{ margin: 0 0 10px; }
 .muted{ color: var(--muted); }
 
-/* Форма альбома и похожие сетки полей: 2 колонки → на mobile одна. */
-.music-form{
+/* Форма без Bootstrap row: сетка из двух колонок. С `.row` на форме правит раскладку Bootstrap. */
+.music-form:not(.row){
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
@@ -579,31 +699,21 @@ main,
   grid-column: 1 / -1;
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
   padding-top: 4px;
 }
-.btn{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--stroke);
-  background: rgba(255,255,255,.06);
-  color: var(--text);
-  text-decoration: none;
-  cursor: pointer;
-}
-.btn--primary{
-  border-color: rgba(225,29,46,.55);
-  background: rgba(225,29,46,.16);
-}
 
-/* Счётчики на странице коллекции. */
-.stats{
+/* Счётчики на странице коллекции (Bootstrap row + card). */
+.stats:not(.row){
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
   margin: 8px 0 12px;
+}
+.stat-card{
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,.04) !important;
 }
 .stat{
   border: 1px solid var(--stroke);
@@ -726,60 +836,23 @@ main,
   align-items: start;
 }
 
-/* Модальное окно деталей со списка коллекции: затемнение фона + панель. */
-.modal{
-  position: fixed;
-  inset: 0;
-  z-index: 3000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  flex: 0 0 auto;
-}
-.modal[hidden]{
-  display: none !important;
-}
-.modal__backdrop{
-  position: absolute;
-  inset: 0;
-  background: rgba(0,0,0,.75);
-  backdrop-filter: blur(8px);
-}
-.modal__panel{
-  position: relative;
-  z-index: 1;
-  width: min(920px, 100%);
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
-  border-radius: var(--radius);
-  border: 1px solid var(--stroke);
+/* Модалка коллекции: Bootstrap .modal + косметика под audiox */
+#album-modal .modal-content{
   background: var(--surface);
-  box-shadow: var(--shadow);
-  padding: 22px 22px 20px;
-}
-.modal__close{
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2;
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-sm);
   border: 1px solid var(--stroke);
-  background: rgba(255,255,255,.08);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
   color: var(--text);
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
 }
-.modal__close:hover{
-  background: rgba(255,255,255,.12);
+#album-modal .modal-header,
+#album-modal .modal-footer{
+  border-color: var(--stroke);
+}
+#album-modal .btn-close{
+  filter: invert(1) grayscale(100%) brightness(200%);
 }
 .modal__detail{
-  margin-top: 4px;
+  margin-top: 0;
 }
 .album-row{
   cursor: pointer;
@@ -819,15 +892,10 @@ main,
 
 /* Адаптив: узкая шапка, одна колонка форм и сеток. */
 @media (max-width: 760px){
-  .top__inner{
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .bars{ justify-content: flex-start; }
-  .grid{ grid-template-columns: 1fr; }
-  .music-form{ grid-template-columns: 1fr; }
+  .grid:not(.row){ grid-template-columns: 1fr; }
+  .music-form:not(.row){ grid-template-columns: 1fr; }
   .detail,
   .modal__detail.detail{ grid-template-columns: 1fr; }
-  .stats{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stats:not(.row){ grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .filters{ grid-template-columns: 1fr; }
 }

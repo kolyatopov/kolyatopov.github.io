@@ -11,6 +11,7 @@ function setActiveTab(tabId) {
   for (const tab of tabs) {
     const isActive = tab.id === tabId;
     tab.classList.toggle("is-active", isActive);
+    tab.classList.toggle("active", isActive);
     tab.setAttribute("aria-selected", isActive ? "true" : "false");
     tab.tabIndex = isActive ? 0 : -1;
   }
@@ -394,11 +395,10 @@ function renderList() {
 /** Клик по строке таблицы → модалка с полными полями альбома, Escape/оверлей закрывают. */
 function initListAlbumModal() {
   const tableBody = document.querySelector("#albums-table-body");
-  const modal = document.getElementById("album-modal");
-  if (!tableBody || !modal) return;
+  const modalEl = document.getElementById("album-modal");
+  if (!tableBody || !modalEl || typeof bootstrap === "undefined") return;
 
-  const backdrop = modal.querySelector("[data-modal-close]");
-  const closeBtn = modal.querySelector(".modal__close");
+  const bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
   const titleEl = document.getElementById("modal-album-title");
   const metaEl = document.getElementById("modal-album-meta");
   const genreEl = document.getElementById("modal-album-genre");
@@ -408,16 +408,6 @@ function initListAlbumModal() {
   const reviewEl = document.getElementById("modal-album-review");
   const cover = document.getElementById("modal-detail-cover");
   const coverImg = document.getElementById("modal-detail-cover-img");
-
-  function closeModal() {
-    modal.hidden = true;
-    document.body.style.overflow = "";
-    document.removeEventListener("keydown", onDocKeydown);
-  }
-
-  function onDocKeydown(event) {
-    if (event.key === "Escape") closeModal();
-  }
 
   function openModal(albumId) {
     const album = getAlbums().find((a) => a.id === albumId);
@@ -444,10 +434,9 @@ function initListAlbumModal() {
       }
     }
 
-    modal.hidden = false;
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", onDocKeydown);
-    if (closeBtn) closeBtn.focus();
+    // Требование: отдельная страница элемента списка.
+    // Раньше здесь открывалась модалка, но детальная информация должна быть по URL.
+    window.location.href = `./detail.html?id=${encodeURIComponent(albumId)}`;
   }
 
   tableBody.addEventListener("click", (event) => {
@@ -464,12 +453,6 @@ function initListAlbumModal() {
       openModal(row.getAttribute("data-album-id"));
     }
   });
-
-  if (backdrop)
-    backdrop.addEventListener("click", () => {
-      closeModal();
-    });
-  if (closeBtn) closeBtn.addEventListener("click", () => closeModal());
 }
 
 /** Старая страница detail.html?id=… — заполняет поля, если альбом найден. */
@@ -596,7 +579,9 @@ function initLogoIntro() {
     decodedPath === "/" ||
     /\/index\.html$/i.test(decodedPath) ||
     decodedPath.endsWith("/audiox/") ||
-    /audiox\/index\.html$/i.test(decodedPath);
+    decodedPath.endsWith("/audiox-web/") ||
+    /audiox\/index\.html$/i.test(decodedPath) ||
+    /audiox-web\/index\.html$/i.test(decodedPath);
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const introAlreadySeen = sessionStorage.getItem("logoIntroPlayed") === "1";
