@@ -157,10 +157,19 @@ function validateRegisterEmail(value) {
   const local = email.slice(0, at);
   const domain = email.slice(at + 1);
   if (!local || !domain) return { ok: false };
+  if (domain.includes(",")) return { ok: false };
   if (domain.startsWith(".")) return { ok: false };
   if (domain.endsWith(".")) return { ok: false };
   if (domain.includes("..")) return { ok: false };
   if (!domain.includes(".")) return { ok: false };
+  // Сразу после @ домен должен начинаться с буквы (не ".", ",", цифра и т.д.).
+  if (!/^[a-zA-Zа-яА-ЯёЁ]/.test(domain)) return { ok: false };
+
+  const labels = domain.split(".");
+  for (const label of labels) {
+    if (!label.length) return { ok: false };
+    if (!/^[a-zA-Zа-яА-ЯёЁ]/.test(label)) return { ok: false };
+  }
 
   const afterLastDot = domain.slice(domain.lastIndexOf(".") + 1);
   if (afterLastDot.length < 2) return { ok: false };
