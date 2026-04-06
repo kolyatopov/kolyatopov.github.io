@@ -1,3 +1,65 @@
+<?php
+declare(strict_types=1);
+
+$formMessage = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        require_once __DIR__ . '/script.php';
+
+        $title = trim((string) ($_POST['title'] ?? ''));
+        $artist = trim((string) ($_POST['artist'] ?? ''));
+        $country = trim((string) ($_POST['country'] ?? ''));
+        $genre = trim((string) ($_POST['genre'] ?? ''));
+        $year = (int) ($_POST['year'] ?? 0);
+        $status = (string) ($_POST['status'] ?? 'planned');
+        $rating = (float) ($_POST['rating'] ?? 0);
+        $review = trim((string) ($_POST['review'] ?? ''));
+        $coverUrl = null;
+
+        if (
+            $title === '' || $artist === '' || $country === '' || $genre === '' || $review === ''
+            || $year < 1900 || $year > 2100
+            || $rating < 1 || $rating > 10
+            || !in_array($status, ['planned', 'listening', 'completed'], true)
+        ) {
+            $formMessage = 'Проверь поля: год 1900–2100, оценка 1–10, текстовые поля не пустые.';
+        } else {
+            if (!empty($_FILES['coverFile']['tmp_name']) && is_uploaded_file($_FILES['coverFile']['tmp_name'])) {
+                $mime = mime_content_type($_FILES['coverFile']['tmp_name']) ?: '';
+                if (strpos($mime, 'image/') !== 0) {
+                    $formMessage = 'Файл обложки должен быть изображением.';
+                } else {
+                    $bin = file_get_contents($_FILES['coverFile']['tmp_name']);
+                    if ($bin === false) {
+                        $formMessage = 'Не получилось прочитать файл обложки.';
+                    } else {
+                        $coverUrl = 'data:' . $mime . ';base64,' . base64_encode($bin);
+                    }
+                }
+            }
+
+            if ($formMessage === '') {
+                insert_album([
+                    'title' => $title,
+                    'artist' => $artist,
+                    'country' => $country,
+                    'genre' => $genre,
+                    'year' => $year,
+                    'status' => $status,
+                    'rating' => $rating,
+                    'review' => $review,
+                    'cover_url' => $coverUrl,
+                ]);
+                header('Location: list.php', true, 303);
+                exit;
+            }
+        }
+    } catch (Throwable $e) {
+        $formMessage = 'Ошибка БД: проверь config.php и импорт schema.sql.';
+    }
+}
+?>
 <!doctype html>
 <html lang="ru" data-bs-theme="dark">
   <head>
@@ -11,7 +73,6 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="./styles.css" />
-    <!-- Favicon: используем тот же логотип, что в шапке (logo.png). -->
     <link rel="icon" href="./logo.png" type="image/png" />
   </head>
   <body class="d-flex flex-column min-vh-100" data-page="form">
@@ -63,8 +124,16 @@
       <div class="card border-secondary bg-dark shadow-lg">
         <div class="card-body p-4">
           <h1 class="h3 panel__title">Новый альбом</h1>
+          <p class="small text-white-50">Данные сохраняются в MySQL (ЛР4).</p>
 
-          <form class="music-form row g-3 mt-2" id="album-form">
+          <form
+            class="music-form row g-3 mt-2"
+            id="album-form"
+            data-php-handled="1"
+            method="post"
+            action="form.php"
+            enctype="multipart/form-data"
+          >
             <div class="col-md-6">
               <label class="form-label" for="album-title">Название альбома</label>
               <input
@@ -178,7 +247,9 @@
               <button class="btn btn-outline-secondary" type="reset">Очистить</button>
             </div>
           </form>
-          <p class="panel__text mt-3 mb-0" id="form-message" aria-live="polite"></p>
+          <?php if ($formMessage !== '') : ?>
+            <p class="panel__text mt-3 mb-0 text-warning" id="form-message" role="alert"><?= htmlspecialchars($formMessage, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></p>
+          <?php endif; ?>
         </div>
       </div>
     </main>

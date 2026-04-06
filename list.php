@@ -1,3 +1,31 @@
+<?php
+declare(strict_types=1);
+
+$dbError = null;
+$albums = [];
+
+try {
+    require_once __DIR__ . '/script.php';
+    $albums = get_albums_for_list();
+} catch (Throwable $e) {
+    $dbError = 'База недоступна: создай config.php, импортируй schema.sql, запусти MySQL (OpenServer).';
+}
+
+$n = count($albums);
+$completed = 0;
+$listening = 0;
+$sumRating = 0.0;
+foreach ($albums as $a) {
+    if (($a['status'] ?? '') === 'completed') {
+        $completed++;
+    }
+    if (($a['status'] ?? '') === 'listening') {
+        $listening++;
+    }
+    $sumRating += (float) ($a['rating'] ?? 0);
+}
+$avgRating = $n > 0 ? $sumRating / $n : 0.0;
+?>
 <!doctype html>
 <html lang="ru" data-bs-theme="dark">
   <head>
@@ -11,10 +39,10 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="./styles.css" />
-    <!-- Favicon: используем тот же логотип, что в шапке (logo.png). -->
     <link rel="icon" href="./logo.png" type="image/png" />
   </head>
-  <body class="d-flex flex-column min-vh-100" data-page="list">
+  <!-- data-server-rendered-albums: main.js не перезаписывает таблицу из localStorage -->
+  <body class="d-flex flex-column min-vh-100" data-page="list" data-server-rendered-albums="1">
     <header class="audiox-top">
       <nav class="navbar navbar-expand-md navbar-dark audiox-navbar sticky-top">
         <div class="container">
@@ -64,12 +92,16 @@
         <div class="card-body p-4">
           <h1 class="panel__title h3">Коллекция</h1>
 
+          <?php if ($dbError !== null) : ?>
+            <div class="alert alert-danger mt-3" role="alert"><?= htmlspecialchars($dbError, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></div>
+          <?php endif; ?>
+
           <div class="row row-cols-2 row-cols-lg-4 g-3 stats my-3">
             <div class="col">
               <div class="card stat-card h-100 border-secondary">
                 <div class="card-body py-3">
                   <span class="stat__label">Всего</span>
-                  <span class="stat__value d-block" id="stat-total">0</span>
+                  <span class="stat__value d-block"><?= (int) $n ?></span>
                 </div>
               </div>
             </div>
@@ -77,7 +109,7 @@
               <div class="card stat-card h-100 border-secondary">
                 <div class="card-body py-3">
                   <span class="stat__label">Прослушано</span>
-                  <span class="stat__value d-block" id="stat-completed">0</span>
+                  <span class="stat__value d-block"><?= (int) $completed ?></span>
                 </div>
               </div>
             </div>
@@ -85,7 +117,7 @@
               <div class="card stat-card h-100 border-secondary">
                 <div class="card-body py-3">
                   <span class="stat__label">Слушаю</span>
-                  <span class="stat__value d-block" id="stat-listening">0</span>
+                  <span class="stat__value d-block"><?= (int) $listening ?></span>
                 </div>
               </div>
             </div>
@@ -93,31 +125,9 @@
               <div class="card stat-card h-100 border-secondary">
                 <div class="card-body py-3">
                   <span class="stat__label">Средняя оценка</span>
-                  <span class="stat__value d-block" id="stat-rating">0.0</span>
+                  <span class="stat__value d-block"><?= number_format($avgRating, 1, '.', '') ?></span>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div class="filters row g-3 mb-3">
-            <div class="col-md-auto">
-              <label class="form-label small text-white-50 mb-1 d-block" for="filter-status">Статус</label>
-              <select class="form-select bg-dark text-white border-secondary" id="filter-status" style="min-width: 200px">
-                <option value="all">Все статусы</option>
-                <option value="planned">В планах</option>
-                <option value="listening">Слушаю</option>
-                <option value="completed">Прослушан</option>
-              </select>
-            </div>
-            <div class="col-md">
-              <label class="form-label small text-white-50 mb-1 d-block" for="filter-search">Поиск</label>
-      <input
-                class="form-control bg-dark text-white border-secondary"
-                id="filter-search"
-                type="search"
-                placeholder="Альбом или артист"
-                autocomplete="off"
-              />
             </div>
           </div>
 
@@ -132,49 +142,55 @@
                   <th scope="col">Рейтинг</th>
                 </tr>
               </thead>
-              <tbody id="albums-table-body"></tbody>
+              <tbody id="albums-table-body">
+                <?php foreach ($albums as $album) : ?>
+                  <?php
+                  $id = (int) $album['id'];
+                  $title = (string) $album['title'];
+                  $artist = (string) $album['artist'];
+                  $genre = (string) $album['genre'];
+                  $year = (int) $album['year'];
+                  $statusLabel = audiox_human_status((string) $album['status']);
+                  $rating = number_format((float) $album['rating'], 1, '.', '');
+                  $coverUrl = (string) ($album['cover_url'] ?? '');
+                  ?>
+                  <tr class="album-row">
+                    <td>
+                      <a class="album-cell text-decoration-none text-reset d-flex align-items-center" href="./detail.php?id=<?= $id ?>">
+                        <span class="album-thumb">
+                          <?php if ($coverUrl !== '') : ?>
+                            <img
+                              class="album-thumb__img"
+                              src="<?= audiox_h($coverUrl) ?>"
+                              alt="Обложка <?= audiox_h($title) ?>"
+                              loading="lazy"
+                              referrerpolicy="no-referrer"
+                            />
+                          <?php else : ?>
+                            <div class="album-thumb__fallback" aria-hidden="true"><?= audiox_h(strtoupper(substr($title, 0, 1))) ?></div>
+                          <?php endif; ?>
+                        </span>
+                        <span class="album-meta">
+                          <span class="album-title"><?= audiox_h($title) ?></span>
+                          <span class="album-artist"><?= audiox_h($artist) ?></span>
+                        </span>
+                      </a>
+                    </td>
+                    <td><?= audiox_h($genre) ?></td>
+                    <td><?= $year ?></td>
+                    <td><span class="status-pill"><?= audiox_h($statusLabel) ?></span></td>
+                    <td><span class="rating-pill"><?= audiox_h($rating) ?></span></td>
+                  </tr>
+                <?php endforeach; ?>
+              </tbody>
             </table>
           </div>
-          <p class="panel__text mt-3 mb-0" id="list-empty" hidden>Записей пока нет.</p>
+          <?php if ($n === 0 && $dbError === null) : ?>
+            <p class="panel__text mt-3 mb-0">Записей пока нет.</p>
+          <?php endif; ?>
         </div>
       </section>
     </main>
-
-    <div
-      class="modal fade"
-      id="album-modal"
-      tabindex="-1"
-      aria-labelledby="modal-album-title"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h2 class="modal-title h5 mb-0" id="modal-album-title"></h2>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-          </div>
-          <div class="modal-body">
-            <div class="row g-4 modal__detail detail">
-              <div class="col-md-4">
-                <div class="detail__cover cover" data-album="" id="modal-detail-cover">
-                  <img id="modal-detail-cover-img" src="" alt="" />
-                </div>
-              </div>
-              <div class="col-md-8">
-                <p class="panel__text" id="modal-album-meta"></p>
-                <div class="chips" id="modal-album-chips">
-                  <span class="audiox-badge" id="modal-album-genre"></span>
-                  <span class="audiox-badge" id="modal-album-year"></span>
-                  <span class="audiox-badge" id="modal-album-status"></span>
-                  <span class="audiox-badge" id="modal-album-rating"></span>
-                </div>
-                <p class="tile__text mb-0" id="modal-album-review"></p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <footer class="footer">
       <div class="container footer__inner">

@@ -1,3 +1,42 @@
+<?php
+declare(strict_types=1);
+
+function audiox_detail_h(?string $s): string
+{
+    return htmlspecialchars((string) $s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+$id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+$album = null;
+$dbError = null;
+
+try {
+    require_once __DIR__ . '/script.php';
+    if ($id > 0) {
+        $album = get_album_by_id($id);
+    }
+} catch (Throwable $e) {
+    $dbError = 'База недоступна: проверь config.php и schema.sql.';
+}
+
+$titleText = $album ? (string) $album['title'] : 'Нет записи';
+$metaHtml = '';
+if ($album) {
+    $metaHtml =
+        'Исполнитель: <strong>' .
+        audiox_detail_h((string) $album['artist']) .
+        '</strong> • Страна: <strong>' .
+        audiox_detail_h((string) $album['country']) .
+        '</strong>';
+}
+$genre = $album ? audiox_detail_h((string) $album['genre']) : '—';
+$year = $album ? (string) (int) $album['year'] : '—';
+$status = $album ? audiox_detail_h(audiox_human_status((string) $album['status'])) : '—';
+$rating = $album ? audiox_detail_h('Оценка ' . number_format((float) $album['rating'], 1, '.', '')) : '—';
+$review = $album ? audiox_detail_h((string) $album['review']) : '';
+$coverUrl = $album && !empty($album['cover_url']) ? (string) $album['cover_url'] : '';
+$dataAlbum = $album ? audiox_detail_h((string) $album['artist'] . ' — ' . (string) $album['title']) : '';
+?>
 <!doctype html>
 <html lang="ru" data-bs-theme="dark">
   <head>
@@ -11,10 +50,9 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="./styles.css" />
-    <!-- Favicon: используем тот же логотип, что в шапке (logo.png). -->
     <link rel="icon" href="./logo.png" type="image/png" />
   </head>
-  <body class="d-flex flex-column min-vh-100" data-page="detail">
+  <body class="d-flex flex-column min-vh-100" data-page="detail" data-php-rendered-detail="1">
     <header class="audiox-top">
       <nav class="navbar navbar-expand-md navbar-dark audiox-navbar sticky-top">
         <div class="container">
@@ -60,32 +98,39 @@
     </header>
 
     <main id="content" class="container flex-grow-1 py-4">
+      <?php if ($dbError !== null) : ?>
+        <div class="alert alert-danger"><?= htmlspecialchars($dbError, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></div>
+      <?php endif; ?>
       <div class="card border-secondary bg-dark shadow-lg">
         <div class="card-body p-4">
           <div class="row g-4 align-items-start">
             <div class="col-md-4">
-              <div class="detail__cover cover" data-album="" id="detail-cover">
-                <img
-                  src=""
-                  alt="Обложка альбома"
-                  loading="lazy"
-                  referrerpolicy="no-referrer"
-                  id="detail-cover-img"
-                />
+              <div class="detail__cover cover" data-album="<?= $dataAlbum ?>" id="detail-cover">
+                <?php if ($coverUrl !== '') : ?>
+                  <img
+                    src="<?= audiox_detail_h($coverUrl) ?>"
+                    alt="Обложка альбома"
+                    loading="lazy"
+                    referrerpolicy="no-referrer"
+                    id="detail-cover-img"
+                  />
+                <?php else : ?>
+                  <img src="" alt="" id="detail-cover-img" />
+                <?php endif; ?>
               </div>
             </div>
             <div class="col-md-8">
-              <h1 class="panel__title h3" id="detail-title">Нет записи</h1>
-              <p class="panel__text" id="detail-meta"></p>
+              <h1 class="panel__title h3" id="detail-title"><?= audiox_detail_h($titleText) ?></h1>
+              <p class="panel__text" id="detail-meta"><?= $metaHtml ?></p>
 
               <div class="chips" id="detail-chips">
-                <span class="audiox-badge" id="detail-genre">—</span>
-                <span class="audiox-badge" id="detail-year">—</span>
-                <span class="audiox-badge" id="detail-status">—</span>
-                <span class="audiox-badge" id="detail-rating">—</span>
+                <span class="audiox-badge" id="detail-genre"><?= $genre ?></span>
+                <span class="audiox-badge" id="detail-year"><?= $year ?></span>
+                <span class="audiox-badge" id="detail-status"><?= $status ?></span>
+                <span class="audiox-badge" id="detail-rating"><?= $rating ?></span>
               </div>
 
-              <p class="tile__text" id="detail-review"></p>
+              <p class="tile__text" id="detail-review"><?= $review ?></p>
               <a class="btn btn-primary" href="./list.php">К коллекции</a>
             </div>
           </div>

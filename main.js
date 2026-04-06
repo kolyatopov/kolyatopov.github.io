@@ -201,6 +201,7 @@ function readFileAsDataUrl(file) {
 function initAlbumForm() {
   const form = document.querySelector("#album-form");
   if (!form) return;
+  if (form.hasAttribute("data-php-handled")) return;
 
   const message = document.querySelector("#form-message");
   form.addEventListener("submit", async (event) => {
@@ -335,6 +336,7 @@ function initRegisterForm() {
 function renderList() {
   const tableBody = document.querySelector("#albums-table-body");
   if (!tableBody) return;
+  if (document.body?.dataset.serverRenderedAlbums === "1") return;
 
   const filterStatus = document.querySelector("#filter-status");
   const filterSearch = document.querySelector("#filter-search");
@@ -466,6 +468,8 @@ function initListAlbumModal() {
 
 /** Старая страница detail.html?id=… — заполняет поля, если альбом найден. */
 function initDetailPage() {
+  if (document.body?.dataset.phpRenderedDetail === "1") return;
+
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
   const albums = getAlbums();

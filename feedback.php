@@ -1,9 +1,38 @@
+<?php
+declare(strict_types=1);
+
+$message = '';
+$ok = false;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        require_once __DIR__ . '/script.php';
+        $name = trim((string) ($_POST['name'] ?? ''));
+        $email = trim((string) ($_POST['email'] ?? ''));
+        $text = trim((string) ($_POST['message'] ?? ''));
+
+        if ($name === '' || strlen($name) > 120) {
+            $message = 'Укажи имя (до 120 символов).';
+        } elseif ($email === '' || strlen($email) > 255) {
+            $message = 'Укажи email.';
+        } elseif ($text === '') {
+            $message = 'Напиши сообщение.';
+        } else {
+            insert_feedback($name, $email, $text);
+            $ok = true;
+            $message = 'Сообщение сохранено. Спасибо!';
+        }
+    } catch (Throwable $e) {
+        $message = 'Ошибка БД: проверь config.php и таблицу feedback в schema.sql.';
+    }
+}
+?>
 <!doctype html>
 <html lang="ru" data-bs-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Регистрация — audiox</title>
+    <title>Обратная связь — audiox</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -11,10 +40,9 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="./styles.css" />
-    <!-- Favicon: используем тот же логотип, что в шапке (logo.png). -->
     <link rel="icon" href="./logo.png" type="image/png" />
   </head>
-  <body class="d-flex flex-column min-vh-100" data-page="register">
+  <body class="d-flex flex-column min-vh-100">
     <header class="audiox-top">
       <nav class="navbar navbar-expand-md navbar-dark audiox-navbar sticky-top">
         <div class="container">
@@ -48,10 +76,10 @@
                 <a class="nav-link" href="./list.php">Коллекция</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="./feedback.php">Обратная связь</a>
+                <a class="nav-link active" href="./feedback.php" aria-current="page">Обратная связь</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link active" href="./register.html" aria-current="page">Регистрация</a>
+                <a class="nav-link" href="./register.html">Регистрация</a>
               </li>
             </ul>
           </div>
@@ -61,76 +89,55 @@
 
     <main id="content" class="container flex-grow-1 py-4">
       <div class="row justify-content-center">
-        <div class="col-lg-8 col-xl-7">
+        <div class="col-lg-8">
           <div class="card border-secondary bg-dark shadow-lg">
-            <div class="card-body p-4 p-md-5">
-              <h1 class="h3 panel__title">Регистрация</h1>
+            <div class="card-body p-4">
+              <h1 class="h3 panel__title">Обратная связь</h1>
+              <p class="small text-white-50">Данные пишутся в таблицу <code>feedback</code> (ЛР4).</p>
 
-              <form class="music-form row g-3 mt-2" id="register-form" novalidate autocomplete="on">
-                <div class="col-md-6">
-                  <label class="form-label" for="reg-username">Имя пользователя</label>
+              <?php if ($message !== '') : ?>
+                <div class="alert <?= $ok ? 'alert-success' : 'alert-warning' ?> mt-3" role="alert">
+                  <?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
+                </div>
+              <?php endif; ?>
+
+              <form class="row g-3 mt-2" method="post" action="feedback.php">
+                <div class="col-12">
+                  <label class="form-label" for="fb-name">Имя</label>
                   <input
                     class="form-control bg-dark text-white border-secondary"
-                    id="reg-username"
-                    name="username"
+                    id="fb-name"
+                    name="name"
                     type="text"
-                    autocomplete="username"
-                    minlength="3"
-                    maxlength="32"
+                    maxlength="120"
                     required
-                    placeholder="music_fan"
                   />
                 </div>
-
-                <div class="col-md-6">
-                  <label class="form-label" for="reg-email">Email</label>
+                <div class="col-12">
+                  <label class="form-label" for="fb-email">Email</label>
                   <input
                     class="form-control bg-dark text-white border-secondary"
-                    id="reg-email"
+                    id="fb-email"
                     name="email"
-                    type="text"
-                    autocomplete="email"
+                    type="email"
+                    maxlength="255"
                     required
-                    placeholder="example@mail.com"
                   />
                 </div>
-
-                <div class="col-md-6">
-                  <label class="form-label" for="reg-password">Пароль</label>
-                  <input
+                <div class="col-12">
+                  <label class="form-label" for="fb-message">Сообщение</label>
+                  <textarea
                     class="form-control bg-dark text-white border-secondary"
-                    id="reg-password"
-                    name="password"
-                    type="password"
-                    autocomplete="new-password"
-                    minlength="8"
-                    maxlength="128"
+                    id="fb-message"
+                    name="message"
+                    rows="5"
                     required
-                    placeholder="Минимум 8 символов"
-                  />
+                  ></textarea>
                 </div>
-
-                <div class="col-md-6">
-                  <label class="form-label" for="reg-password-confirm">Подтверждение</label>
-                  <input
-                    class="form-control bg-dark text-white border-secondary"
-                    id="reg-password-confirm"
-                    name="passwordConfirm"
-                    type="password"
-                    autocomplete="new-password"
-                    minlength="8"
-                    maxlength="128"
-                    required
-                    placeholder="Повтори пароль"
-                  />
-                </div>
-
-                <div class="col-12 actions">
-                  <button class="btn btn-primary" type="submit">Зарегистрироваться</button>
-                  <button class="btn btn-outline-secondary" type="reset">Очистить</button>
+                <div class="col-12">
+                  <button class="btn btn-primary" type="submit">Отправить</button>
                 </div>
               </form>
-              <p class="register-message mt-3 mb-0" id="register-message" aria-live="polite"></p>
             </div>
           </div>
         </div>
@@ -147,6 +154,5 @@
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
-    <script src="./main.js" defer></script>
   </body>
 </html>
