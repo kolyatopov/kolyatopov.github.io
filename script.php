@@ -1,7 +1,7 @@
 <?php
 /**
  * ЛР4: подключение к БД и выгрузка / запись данных.
- * Подключается из list.php, form.php, detail.php, feedback.php.
+ * Подключается из list.php, form.php, detail.php, feedback.php, register.php.
  */
 declare(strict_types=1);
 
@@ -42,17 +42,30 @@ function audiox_pdo(): PDO
         return $pdo;
     }
 
-    $dsn = sprintf(
-        'mysql:host=%s;dbname=%s;charset=%s',
-        AUDIOX_DB_HOST,
-        AUDIOX_DB_NAME,
-        AUDIOX_DB_CHARSET
-    );
+    if (defined('AUDIOX_DB_SOCKET') && AUDIOX_DB_SOCKET !== '') {
+        $dsn = sprintf(
+            'mysql:unix_socket=%s;dbname=%s;charset=%s',
+            AUDIOX_DB_SOCKET,
+            AUDIOX_DB_NAME,
+            AUDIOX_DB_CHARSET
+        );
+    } else {
+        $dsn = sprintf(
+            'mysql:host=%s;dbname=%s;charset=%s',
+            AUDIOX_DB_HOST,
+            AUDIOX_DB_NAME,
+            AUDIOX_DB_CHARSET
+        );
+        if (defined('AUDIOX_DB_PORT') && (int) AUDIOX_DB_PORT > 0) {
+            $dsn .= ';port=' . (int) AUDIOX_DB_PORT;
+        }
+    }
 
     $pdo = new PDO($dsn, AUDIOX_DB_USER, AUDIOX_DB_PASS, [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
+    $pdo->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci');
 
     return $pdo;
 }
@@ -100,14 +113,133 @@ function insert_album(array $row): int
     return (int) audiox_pdo()->lastInsertId();
 }
 
-function insert_feedback(string $name, string $email, string $message): void
+function insert_feedback(string $name, string $email, string $phone, string $message): void
 {
     $stmt = audiox_pdo()->prepare(
-        'INSERT INTO feedback (name, email, message) VALUES (:name, :email, :message)'
+        'INSERT INTO feedback (name, email, phone, message) VALUES (:name, :email, :phone, :message)'
     );
     $stmt->execute([
         'name' => $name,
         'email' => $email,
+        'phone' => $phone,
         'message' => $message,
     ]);
+}
+
+/** Телефон: цифры, +, скобки, пробел, дефис; 10–11 цифр. */
+function audiox_validate_phone(string $raw): ?string
+{
+    $phone = trim($raw);
+    if ($phone === '') {
+        return 'Укажи номер телефона.';
+    }
+    if (strlen($phone) > 32) {
+        return 'Номер слишком длинный.';
+    }
+    if (!preg_match('/^[0-9+\s().\-]+$/u', $phone)) {
+        return 'В номере допустимы только цифры, +, скобки, пробел и дефис.';
+    }
+    preg_match_all('/\d/', $phone, $m);
+    $digits = isset($m[0]) ? implode('', $m[0]) : '';
+    $n = strlen($digits);
+    if ($n < 10 || $n > 11) {
+        return 'В номере должно быть от 10 до 11 цифр.';
+    }
+
+    return null;
+}
+
+/** Логин: латиница, цифры, подчёркивание, 3–32 символа. */
+function audiox_validate_register_username(string $raw): ?string
+{
+    $name = trim($raw);
+    if ($name === '') {
+        return 'Укажи имя пользователя.';
+    }
+    if (strlen($name) < 3 || strlen($name) > 32) {
+        return 'Логин: от 3 до 32 символов.';
+    }
+    if (!preg_match('/^[a-zA-Z0-9_]+$/', $name)) {
+        return 'Логин: только латиница, цифры и подчёркивание.';
+    }
+
+    return null;
+}
+
+/** Email (базовая проверка, до 255 символов). */
+function audiox_validate_register_email(string $raw): ?string
+{
+    $email = trim($raw);
+    if ($email === '') {
+        return 'Укажи email.';
+    }
+    if (strlen($email) > 255) {
+        return 'Email слишком длинный.';
+    }
+    if (preg_match('/\s/u', $email)) {
+        return 'Email не должен содержать пробелы.';
+    }
+    $at = strpos($email, '@');
+    if ($at === false || $at === 0 || strrpos($email, '@') !== $at) {
+        return 'Некорректный email.';
+    }
+    $domain = substr($email, $at + 1);
+    if ($domain === '' || strpos($domain, '.') === false) {
+        return 'Некорректный email.';
+    }
+    if ($domain[0] === '.' || substr($domain, -1) === '.' || strpos($domain, '..') !== false) {
+        return 'Некорректный email.';
+    }
+
+    return null;
+}
+
+/** Пароль: 8–128 символов. */
+function audiox_validate_register_password(string $raw): ?string
+{
+    $len = strlen($raw);
+    if ($len < 8 || $len > 128) {
+        return 'Пароль: от 8 до 128 символов.';
+    }
+
+    return null;
+}
+
+/** @return 'username'|'email'|null */
+function audiox_register_conflict(string $username, string $email): ?string
+{
+    $stmt = audiox_pdo()->prepare(
+        'SELECT username, email FROM users WHERE username = :username OR email = :email LIMIT 1'
+    );
+    $stmt->execute(['username' => $username, 'email' => $email]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        return null;
+    }
+    if (strcasecmp((string) $row['username'], $username) === 0) {
+        return 'username';
+    }
+
+    return 'email';
+}
+
+function insert_user(string $username, string $email, string $phone, string $passwordPlain): int
+{
+    $hash = password_hash($passwordPlain, PASSWORD_DEFAULT);
+    if ($hash === false) {
+        throw new RuntimeException('Не удалось захешировать пароль.');
+    }
+
+    $stmt = audiox_pdo()->prepare(
+        'INSERT INTO users (username, email, phone, password_hash)
+         VALUES (:username, :email, :phone, :password_hash)'
+    );
+    $stmt->execute([
+        'username' => $username,
+        'email' => $email,
+        'phone' => $phone,
+        'password_hash' => $hash,
+    ]);
+
+    return (int) audiox_pdo()->lastInsertId();
 }

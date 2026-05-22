@@ -187,6 +187,110 @@ function validateRegisterPassword(value) {
   return { ok: true };
 }
 
+/** Телефон: цифры, +, скобки, пробел, дефис; 10–11 цифр. */
+function validateRegisterPhone(value) {
+  const phone = String(value || "").trim();
+  if (!phone) return { ok: false };
+  if (phone.length > 32) return { ok: false };
+  if (!/^[0-9+(). \-]+$/u.test(phone)) return { ok: false };
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length < 10 || digits.length > 11) return { ok: false };
+  return { ok: true };
+}
+
+/** Починка «кракозябр», если UTF-8 когда-то прочитали как Latin-1. */
+function repairUtf8Text(value) {
+  const text = String(value ?? "");
+  if (!text) return "";
+  if (/[\u0400-\u04FF]/.test(text)) return text;
+  try {
+    const fixed = decodeURIComponent(escape(text));
+    if (/[\u0400-\u04FF]/.test(fixed)) return fixed;
+    return fixed;
+  } catch (_err) {
+    return text;
+  }
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+/** Обновляет размытый фон .cover после смены src у img. */
+function bindCoverBackground(img) {
+  const cover = img.closest(".cover");
+  if (!cover) return;
+
+  const apply = () => {
+    const src = img.currentSrc || img.src;
+    if (src) {
+      cover.style.setProperty("--cover-image", `url("${src}")`);
+      cover.classList.add("cover--has-img");
+    }
+  };
+
+  apply();
+  img.addEventListener("load", apply, { once: false });
+  img.addEventListener("error", () => {
+    cover.style.removeProperty("--cover-image");
+    cover.classList.remove("cover--has-img");
+  });
+}
+
+/** URL обложки для главной: lite JSON + отдельный cover.php для больших data:URL. */
+function resolveHomeCoverUrl(album) {
+  const direct = String(album?.cover_url || "").trim();
+  if (direct) return direct;
+  if (album?.has_cover && album?.id) {
+    return new URL(`cover.php?id=${Number(album.id)}`, window.location.href).href;
+  }
+  return "";
+}
+
+function preloadCoverImage(url, maxMs = 2000) {
+  const src = String(url || "").trim();
+  if (!src) return Promise.resolve(false);
+
+  const loaded = new Promise((resolve) => {
+    const probe = new Image();
+    probe.referrerPolicy = "no-referrer";
+    probe.decoding = "async";
+    probe.onload = () => resolve(true);
+    probe.onerror = () => resolve(false);
+    probe.src = src;
+  });
+
+  return Promise.race([loaded, sleep(maxMs).then(() => false)]);
+}
+
+function nextPaintFrame() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
+}
+
+/** Ждём, пока заставка снимет intro-pending и плитки станут видимы (иначе transition не играет). */
+function whenHomeContentVisible() {
+  return new Promise((resolve) => {
+    const root = document.documentElement;
+    if (!root.classList.contains("intro-pending")) {
+      resolve();
+      return;
+    }
+    const observer = new MutationObserver(() => {
+      if (!root.classList.contains("intro-pending")) {
+        observer.disconnect();
+        resolve();
+      }
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
+    window.setTimeout(() => {
+      observer.disconnect();
+      resolve();
+    }, 2800);
+  });
+}
+
 /** Обложка из файла → data URL для сохранения в localStorage вместе с альбомом. */
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
@@ -263,18 +367,20 @@ function initAlbumForm() {
   });
 }
 
-/** Регистрация: проверки и сообщения в #register-message (на сервер не отправляется). */
+/** Регистрация: клиентские проверки; при data-php-handled форма уходит POST в register.php. */
 function initRegisterForm() {
   const form = document.querySelector("#register-form");
   if (!form) return;
 
+  const phpHandled = form.hasAttribute("data-php-handled");
   const messageEl = document.querySelector("#register-message");
   const user = form.querySelector("#reg-username");
   const email = form.querySelector("#reg-email");
+  const phone = form.querySelector("#reg-phone");
   const pass = form.querySelector("#reg-password");
   const pass2 = form.querySelector("#reg-password-confirm");
 
-  const inputs = [user, email, pass, pass2].filter(Boolean);
+  const inputs = [user, email, phone, pass, pass2].filter(Boolean);
 
   function clearFieldErrors() {
     for (const el of inputs) el.classList.remove("is-invalid");
@@ -294,39 +400,53 @@ function initRegisterForm() {
   });
 
   form.addEventListener("submit", (event) => {
-    event.preventDefault();
     clearFieldErrors();
     clearMessage();
 
+    function fail(msg, fields) {
+      event.preventDefault();
+      for (const el of fields) {
+        if (el) el.classList.add("is-invalid");
+      }
+      if (messageEl) {
+        messageEl.textContent = msg;
+        messageEl.classList.add("register-message--err");
+      }
+    }
+
     if (!validateRegisterUsername(user?.value).ok) {
-      user.classList.add("is-invalid");
-      messageEl.textContent = "Не получилось: логин не подходит.";
-      messageEl.classList.add("register-message--err");
+      fail("Не получилось: логин не подходит.", [user]);
       return;
     }
 
     if (!validateRegisterEmail(email?.value).ok) {
-      email.classList.add("is-invalid");
-      messageEl.textContent = "Не получилось: email не подходит.";
-      messageEl.classList.add("register-message--err");
+      fail("Не получилось: email не подходит.", [email]);
+      return;
+    }
+
+    if (!validateRegisterPhone(phone?.value).ok) {
+      fail(
+        "Не получилось: телефон — только цифры, +, скобки, пробел и дефис, от 10 до 11 цифр.",
+        [phone]
+      );
       return;
     }
 
     if (!validateRegisterPassword(pass?.value).ok) {
-      pass.classList.add("is-invalid");
-      messageEl.textContent = "Не получилось: пароль не подходит.";
-      messageEl.classList.add("register-message--err");
+      fail("Не получилось: пароль не подходит.", [pass]);
       return;
     }
 
     if (String(pass.value) !== String(pass2.value)) {
-      pass.classList.add("is-invalid");
-      pass2.classList.add("is-invalid");
-      messageEl.textContent = "Не получилось: пароли не совпадают.";
-      messageEl.classList.add("register-message--err");
+      fail("Не получилось: пароли не совпадают.", [pass, pass2]);
       return;
     }
 
+    if (phpHandled) {
+      return;
+    }
+
+    event.preventDefault();
     messageEl.textContent = "Получилось: форма прошла, на сервер ничего не ушло.";
     messageEl.classList.add("register-message--ok");
   });
@@ -547,6 +667,154 @@ function initGenreSpotify() {
   });
 }
 
+function cancelTileAnimations(tileList) {
+  for (const tile of tileList) {
+    tile.getAnimations().forEach((anim) => anim.cancel());
+    tile.classList.remove("is-album-fading", "is-album-reveal");
+    tile.style.removeProperty("opacity");
+    tile.style.removeProperty("transform");
+  }
+}
+
+/** Главная: плитки жанров — альбомы из MySQL, смена каждые 20 с (lite JSON + Web Animations API). */
+function initHomeAlbumRotation() {
+  const panel = document.getElementById("panel-genres");
+  if (!panel) return;
+
+  const tiles = Array.from(panel.querySelectorAll(".tile--genre-selectable"));
+  if (tiles.length === 0) return;
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const canAnimate = !reducedMotion && typeof tiles[0].animate === "function";
+  const albumsUrl = new URL("albums-json.php?lite=1", window.location.href).href;
+  const ROTATE_MS = 20000;
+
+  let albums = [];
+  let offset = 0;
+  let isAnimating = false;
+  let rotateTimer = null;
+
+  function applyAlbumToTile(tile, album) {
+    if (!album) return;
+
+    const cover = tile.querySelector(".cover");
+    const img = tile.querySelector(".cover img");
+    const kicker = tile.querySelector(".tile__kicker");
+    const titleEl = tile.querySelector(".tile__title");
+    const textEl = tile.querySelector(".tile__text");
+
+    const title = repairUtf8Text(album.title);
+    const artist = repairUtf8Text(album.artist);
+    const genre = repairUtf8Text(album.genre);
+    const review = repairUtf8Text(album.review);
+    const label = `${artist} — ${title}`;
+    const coverUrl = resolveHomeCoverUrl(album);
+
+    if (cover) cover.setAttribute("data-album", label);
+    if (kicker) kicker.textContent = genre || "—";
+    if (titleEl) titleEl.textContent = `${artist} · ${title}`;
+    if (textEl) {
+      textEl.textContent = review.length > 140 ? `${review.slice(0, 137)}…` : review;
+    }
+
+    if (!img) return;
+
+    img.alt = `Обложка ${title}`;
+    img.referrerPolicy = "no-referrer";
+
+    const applyCover = (loaded) => {
+      if (!cover) return;
+      if (loaded && coverUrl) {
+        img.src = coverUrl;
+        img.style.removeProperty("opacity");
+        img.style.removeProperty("visibility");
+        bindCoverBackground(img);
+        return;
+      }
+      img.removeAttribute("src");
+      img.style.opacity = "0";
+      img.style.visibility = "hidden";
+      cover.classList.remove("cover--has-img");
+      cover.style.removeProperty("--cover-image");
+    };
+
+    if (!coverUrl) {
+      applyCover(false);
+      return;
+    }
+
+    void preloadCoverImage(coverUrl, 2500).then(applyCover);
+  }
+
+  async function runTileMotion(out) {
+    if (!canAnimate) return;
+    cancelTileAnimations(tiles);
+    const keyframes = out
+      ? [
+          { opacity: 1, transform: "translateY(0) scale(1)" },
+          { opacity: 0, transform: "translateY(12px) scale(0.98)" },
+        ]
+      : [
+          { opacity: 0, transform: "translateY(12px) scale(0.98)" },
+          { opacity: 1, transform: "translateY(0) scale(1)" },
+        ];
+    const options = { duration: 520, easing: "ease", fill: "forwards" };
+    const runs = tiles.map((tile) => tile.animate(keyframes, options));
+    await Promise.all(runs.map((run) => run.finished.catch(() => {})));
+  }
+
+  async function paint() {
+    const n = albums.length;
+    if (n === 0 || isAnimating) return;
+    if (!panel.classList.contains("is-active")) return;
+
+    isAnimating = true;
+    try {
+      await runTileMotion(true);
+      tiles.forEach((tile, index) => applyAlbumToTile(tile, albums[(offset + index) % n]));
+      offset = (offset + 1) % Math.max(n, 1);
+      await runTileMotion(false);
+    } finally {
+      cancelTileAnimations(tiles);
+      isAnimating = false;
+    }
+  }
+
+  function scheduleRotation() {
+    if (rotateTimer) window.clearInterval(rotateTimer);
+    rotateTimer = window.setInterval(() => {
+      void paint();
+    }, ROTATE_MS);
+  }
+
+  async function bootstrap() {
+    try {
+      const response = await fetch(albumsUrl, {
+        headers: { Accept: "application/json; charset=UTF-8" },
+      });
+      if (!response.ok) throw new Error("albums fetch failed");
+      const data = JSON.parse(await response.text());
+      if (!Array.isArray(data) || data.length === 0) return;
+
+      albums = data;
+      await whenHomeContentVisible();
+      await nextPaintFrame();
+      await paint();
+      scheduleRotation();
+    } catch (_err) {
+      /* без PHP/БД ротация недоступна */
+    }
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && albums.length > 0) {
+      void paint();
+    }
+  });
+
+  void bootstrap();
+}
+
 /** Выставляет --cover-image для .cover с загруженной картинкой (размытый фон под обложкой). */
 function initCoverArt() {
   const coverImages = Array.from(document.querySelectorAll(".cover img"));
@@ -564,15 +832,16 @@ function initCoverArt() {
     };
 
     if (img.complete && img.naturalWidth === 0) {
-      img.remove();
+      cover.style.removeProperty("--cover-image");
+      cover.classList.remove("cover--has-img");
       continue;
     }
 
     applyCoverBackground();
     img.addEventListener("load", applyCoverBackground);
     img.addEventListener("error", () => {
-      img.remove();
       cover.style.removeProperty("--cover-image");
+      cover.classList.remove("cover--has-img");
     });
   }
 }
@@ -635,6 +904,7 @@ runLogoIntro();
 /* Инициализация по страницам: лишние вызовы безопасно no-op, если нет нужных узлов в DOM. */
 initTabs();
 initGenreSpotify();
+initHomeAlbumRotation();
 initAlbumForm();
 initRegisterForm();
 renderList();

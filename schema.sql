@@ -22,8 +22,24 @@ CREATE TABLE IF NOT EXISTS feedback (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(120) NOT NULL,
   email VARCHAR(255) NOT NULL,
+  phone VARCHAR(32) NOT NULL,
   message TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Если таблица feedback уже была без phone, выполни в phpMyAdmin один раз:
+-- ALTER TABLE feedback ADD COLUMN phone VARCHAR(32) NOT NULL DEFAULT '' AFTER email;
+
+-- Регистрация пользователей (форма register.php)
+CREATE TABLE IF NOT EXISTS users (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(32) NOT NULL,
+  email VARCHAR(255) NOT NULL,
+  phone VARCHAR(32) NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_users_username (username),
+  UNIQUE KEY uq_users_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 INSERT INTO albums (title, artist, country, genre, year, status, rating, review, cover_url) VALUES

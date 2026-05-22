@@ -438,6 +438,48 @@ main,
   background: rgba(225,29,46,.12);
 }
 
+/* Главная: плавная смена альбомов (дублирует WAAPI в main.js на старых браузерах) */
+#panel-genres .tile--genre-selectable.is-album-rotating{
+  will-change: opacity, transform;
+}
+#panel-genres .tile--genre-selectable > .cover,
+#panel-genres .tile--genre-selectable > .tile__kicker,
+#panel-genres .tile--genre-selectable > .tile__title,
+#panel-genres .tile--genre-selectable > .tile__text{
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+#panel-genres .tile--genre-selectable.is-album-fading > .cover,
+#panel-genres .tile--genre-selectable.is-album-fading > .tile__kicker,
+#panel-genres .tile--genre-selectable.is-album-fading > .tile__title,
+#panel-genres .tile--genre-selectable.is-album-fading > .tile__text{
+  opacity: 0;
+  transform: translateY(10px);
+}
+@keyframes homeAlbumReveal{
+  from{
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to{
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+#panel-genres .tile--genre-selectable.is-album-reveal > .cover,
+#panel-genres .tile--genre-selectable.is-album-reveal > .tile__kicker,
+#panel-genres .tile--genre-selectable.is-album-reveal > .tile__title,
+#panel-genres .tile--genre-selectable.is-album-reveal > .tile__text{
+  animation: homeAlbumReveal 0.62s ease both;
+}
+#panel-genres .cover.cover--has-img::after{
+  opacity: 0;
+  transform: translate(-50%, calc(-50% + 14px));
+}
+#panel-genres .cover.cover--has-img:hover::after{
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
 /* Обложка 16:9: размытый фон из картинки (--cover-image задаёт JS), поверх — contain. */
 .cover{
   width: 100%;

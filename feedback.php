@@ -9,16 +9,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         require_once __DIR__ . '/script.php';
         $name = trim((string) ($_POST['name'] ?? ''));
         $email = trim((string) ($_POST['email'] ?? ''));
+        $phone = trim((string) ($_POST['phone'] ?? ''));
         $text = trim((string) ($_POST['message'] ?? ''));
 
         if ($name === '' || strlen($name) > 120) {
             $message = 'Укажи имя (до 120 символов).';
         } elseif ($email === '' || strlen($email) > 255) {
             $message = 'Укажи email.';
+        } elseif (($err = audiox_validate_phone($phone)) !== null) {
+            $message = $err;
         } elseif ($text === '') {
             $message = 'Напиши сообщение.';
         } else {
-            insert_feedback($name, $email, $text);
+            insert_feedback($name, $email, $phone, $text);
             $ok = true;
             $message = 'Сообщение сохранено. Спасибо!';
         }
@@ -79,7 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <a class="nav-link active" href="./feedback.php" aria-current="page">Обратная связь</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="./register.html">Регистрация</a>
+                <a class="nav-link" href="./register.php">Регистрация</a>
               </li>
             </ul>
           </div>
@@ -93,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           <div class="card border-secondary bg-dark shadow-lg">
             <div class="card-body p-4">
               <h1 class="h3 panel__title">Обратная связь</h1>
-              <p class="small text-white-50">Данные пишутся в таблицу <code>feedback</code> (ЛР4).</p>
+              
 
               <?php if ($message !== '') : ?>
                 <div class="alert <?= $ok ? 'alert-success' : 'alert-warning' ?> mt-3" role="alert">
@@ -123,6 +126,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     maxlength="255"
                     required
                   />
+                </div>
+                <div class="col-12">
+                  <label class="form-label" for="fb-phone">Телефон</label>
+                  <input
+                    class="form-control bg-dark text-white border-secondary"
+                    id="fb-phone"
+                    name="phone"
+                    type="text"
+                    maxlength="32"
+                    placeholder="+7 (999) 123-45-67"
+                    inputmode="tel"
+                    autocomplete="tel"
+                    pattern="[0-9+(). \-]+"
+                    title="Только цифры, +, скобки, пробел и дефис"
+                    required
+                  />
+                  <div class="form-text text-white-50 small">
+                    10–11 цифр; без букв и лишних символов.
+                  </div>
                 </div>
                 <div class="col-12">
                   <label class="form-label" for="fb-message">Сообщение</label>

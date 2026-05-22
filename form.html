@@ -51,7 +51,7 @@
                 <a class="nav-link" href="./feedback.php">Обратная связь</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="./register.html">Регистрация</a>
+                <a class="nav-link" href="./register.php">Регистрация</a>
               </li>
             </ul>
           </div>
@@ -105,13 +105,30 @@
 
             <div class="col-md-6">
               <label class="form-label" for="album-country">Страна</label>
-              <select class="form-select bg-dark text-white border-secondary" id="album-country" name="country" required>
-                <option>Франция</option>
-                <option>США</option>
-                <option>Великобритания</option>
-                <option>Япония</option>
-                <option>Другое</option>
-              </select>
+              <input
+                class="form-control bg-dark text-white border-secondary"
+                id="album-country"
+                name="country"
+                type="text"
+                list="album-country-list"
+                maxlength="120"
+                placeholder="Россия или своя страна"
+                autocomplete="off"
+                required
+              />
+              <datalist id="album-country-list">
+                <option value="Россия"></option>
+                <option value="Франция"></option>
+                <option value="США"></option>
+                <option value="Великобритания"></option>
+                <option value="Япония"></option>
+                <option value="Германия"></option>
+                <option value="Канада"></option>
+                <option value="Италия"></option>
+                <option value="Испания"></option>
+                <option value="Южная Корея"></option>
+              </datalist>
+              <div class="form-text text-white-50 small">Выбери из подсказок или введи страну с клавиатуры.</div>
             </div>
 
             <div class="col-md-6">

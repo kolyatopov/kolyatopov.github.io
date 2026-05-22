@@ -89,7 +89,7 @@ $dataAlbum = $album ? audiox_detail_h((string) $album['artist'] . ' — ' . (str
                 <a class="nav-link" href="./feedback.php">Обратная связь</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="./register.html">Регистрация</a>
+                <a class="nav-link" href="./register.php">Регистрация</a>
               </li>
             </ul>
           </div>

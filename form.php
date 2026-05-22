@@ -19,14 +19,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (
             $title === '' || $artist === '' || $country === '' || $genre === '' || $review === ''
+            || mb_strlen($country) > 120
             || $year < 1900 || $year > 2100
             || $rating < 1 || $rating > 10
             || !in_array($status, ['planned', 'listening', 'completed'], true)
         ) {
-            $formMessage = 'Проверь поля: год 1900–2100, оценка 1–10, текстовые поля не пустые.';
+            $formMessage = 'Проверь поля: год 1900–2100, оценка 1–10, страна до 120 символов, текстовые поля не пустые.';
         } else {
             if (!empty($_FILES['coverFile']['tmp_name']) && is_uploaded_file($_FILES['coverFile']['tmp_name'])) {
-                $mime = mime_content_type($_FILES['coverFile']['tmp_name']) ?: '';
+                $tmp = $_FILES['coverFile']['tmp_name'];
+                $mime = '';
+                if (function_exists('mime_content_type')) {
+                    $mime = (string) (mime_content_type($tmp) ?: '');
+                }
+                if ($mime === '' && class_exists('finfo')) {
+                    $finfo = new finfo(FILEINFO_MIME_TYPE);
+                    $mime = (string) ($finfo->file($tmp) ?: '');
+                }
                 if (strpos($mime, 'image/') !== 0) {
                     $formMessage = 'Файл обложки должен быть изображением.';
                 } else {
@@ -56,7 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } catch (Throwable $e) {
-        $formMessage = 'Ошибка БД: проверь config.php и импорт schema.sql.';
+        $formMessage =
+            'Ошибка БД: проверь config.php, импорт schema.sql. На MAMP часто нужны порт MySQL (8889) и пароль root. ';
+        if (defined('AUDIOX_DEBUG') && AUDIOX_DEBUG) {
+            $formMessage .= htmlspecialchars($e->getMessage(), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        }
     }
 }
 ?>
@@ -112,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <a class="nav-link" href="./feedback.php">Обратная связь</a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="./register.html">Регистрация</a>
+                <a class="nav-link" href="./register.php">Регистрация</a>
               </li>
             </ul>
           </div>
@@ -124,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <div class="card border-secondary bg-dark shadow-lg">
         <div class="card-body p-4">
           <h1 class="h3 panel__title">Новый альбом</h1>
-          <p class="small text-white-50">Данные сохраняются в MySQL (ЛР4).</p>
+
 
           <form
             class="music-form row g-3 mt-2"
@@ -174,13 +187,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             <div class="col-md-6">
               <label class="form-label" for="album-country">Страна</label>
-              <select class="form-select bg-dark text-white border-secondary" id="album-country" name="country" required>
-                <option>Франция</option>
-                <option>США</option>
-                <option>Великобритания</option>
-                <option>Япония</option>
-                <option>Другое</option>
-              </select>
+              <input
+                class="form-control bg-dark text-white border-secondary"
+                id="album-country"
+                name="country"
+                type="text"
+                list="album-country-list"
+                maxlength="120"
+                placeholder="Россия или своя страна"
+                autocomplete="off"
+                required
+              />
+              <datalist id="album-country-list">
+                <option value="Россия"></option>
+                <option value="Франция"></option>
+                <option value="США"></option>
+                <option value="Великобритания"></option>
+                <option value="Япония"></option>
+                <option value="Германия"></option>
+                <option value="Канада"></option>
+                <option value="Италия"></option>
+                <option value="Испания"></option>
+                <option value="Южная Корея"></option>
+              </datalist>
+              <div class="form-text text-white-50 small">Выбери из подсказок или введи страну с клавиатуры.</div>
             </div>
 
             <div class="col-md-6">
